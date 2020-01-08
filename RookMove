@@ -1,0 +1,157 @@
+import sys
+import math
+
+# Auto-generated code below aims at helping you parse
+# the standard input according to the problem statement.
+
+def rook_free_list(rook_position):
+    rows_list = ["1", "2", "3", "4", "5", "6", "7", "8"]
+    columns_list = ["a", "b", "c", "d", "e", "f", "g", "h"]
+    row = rook_position[-1]
+    column = rook_position[-2]
+    rook_free_move = []
+
+    for element in rows_list:
+        if element != row:
+            rook_free_move.append(column + element)
+
+    for element in columns_list:
+        if element != column:
+            rook_free_move.append(element + row)
+
+    rook_free_move.sort()
+    return rook_free_move
+
+def reduce_pieces(pieces, rook_position):
+    pieces_in_rook_rows = []
+    pieces_in_rook_columns =[]
+    for element in pieces:
+        if element[1][0] == rook_position[0]:
+            pieces_in_rook_columns.append(element[1])
+
+        if element[1][1] == rook_position[1]:
+            pieces_in_rook_rows.append(element[1])
+
+    pieces_in_rook_rows.sort()
+    # print(f"pieces in rook rows {pieces_in_rook_rows}")
+    pieces_in_rook_columns.sort()
+    # print(f"pieces in rook columns{pieces_in_rook_columns}")
+
+    pieces_in_rook_rows_left = []
+    pieces_in_rook_rows_right = []
+    pieces_in_rook_columns_lo = []
+    pieces_in_rook_columns_hi = []
+
+    for i in pieces_in_rook_rows:
+        if i < rook_position:
+            pieces_in_rook_rows_left.append(i)
+
+        elif i > rook_position:
+            pieces_in_rook_rows_right.append(i)
+
+
+    # print(f"rook rows left{pieces_in_rook_rows_left}")
+    # print(f"rook rows right{pieces_in_rook_rows_right}")
+
+    for i in pieces_in_rook_columns:
+        if i < rook_position:
+            pieces_in_rook_columns_lo.append(i)
+        elif i > rook_position:
+            pieces_in_rook_columns_hi.append(i)
+
+    # print(f"pieces_in_rook_columns_lo {pieces_in_rook_columns_lo}")
+    # print(f"pieces_in_rook_columns_hi{pieces_in_rook_columns_hi}")
+
+
+
+    relevant_pieces= []
+    if len(pieces_in_rook_rows_left) > 0:
+        relevant_pieces.append(max(pieces_in_rook_rows_left))
+    if len(pieces_in_rook_rows_right) > 0:
+        relevant_pieces.append(min(pieces_in_rook_rows_right))
+    if len(pieces_in_rook_columns_lo) > 0:
+        relevant_pieces.append(max(pieces_in_rook_columns_lo))
+    if len(pieces_in_rook_columns_hi) > 0:
+        relevant_pieces.append(min(pieces_in_rook_columns_hi))
+
+    # print(relevant_pieces)
+
+    reduced_pieces=[]
+    for element in pieces:
+        if element[1] in relevant_pieces:
+            reduced_pieces.append(element)
+
+    return reduced_pieces
+
+def delete_moves(reduced_pieces, rook_moves_list, rook_position):
+    rook_final_moves = []
+    get_max = lambda val_list: max([val for val in val_list if val is not None]) if val_list else None
+    get_min = lambda val_list: min([val for val in val_list if val is not None]) if val_list else None
+    row_left =[]
+    row_right=[]
+    column_hi=[]
+    column_lo=[]
+    for element in rook_moves_list:
+        if element[0] == rook_position[0]:
+            if element[1] > rook_position[1]:
+                column_hi.append(element)
+            elif element[1] < rook_position[1]:
+                column_lo.append(element)
+        if element[1] == rook_position[1]:
+            if element[0] > rook_position[0]:
+                row_right.append(element)
+            elif element[0] < rook_position[0]:
+                row_left.append(element)
+
+    for i in pieces:
+        if i[1][0] == rook_position[0]:
+            if i[1][1] < rook_position[1]:
+                while i[1] != get_max(column_lo):
+                    column_lo.pop(0)
+            if i[1][1] > rook_position[1]:
+               while i[1] != get_min(column_hi):
+                   column_hi.pop(-1)
+
+
+        elif i[1][1] == rook_position[1]:
+            if i[1][0] < rook_position[0]:
+                while i[1] != get_max(row_left):
+                    row_left.pop(0)
+            if i[1][0] > rook_position[0]:
+                while i[1] != min(row_right):
+                    row_right.pop(-1)
+
+
+    rook_final_moves = row_left+row_right+column_hi+column_lo
+    return rook_final_moves
+
+
+
+
+
+
+
+rook_position = "d5"
+
+# nb_pieces = int(input())
+# pieces = []
+# x=[]
+# for i in range(nb_pieces):
+#     colour, one_piece = input().split()
+#     colour = int(colour)
+#     x.append(colour)
+#     x.append(one_piece)
+#     pieces.append(x)
+#     x=[]
+
+pieces = [[0,"c1"], [1,"e8"], [1, "d7"], [0,"d8"], [0, "a5"], [0, "g5"], [1, "h5"], [1, "f8"], [0, "d6"]]
+
+# if nb_pieces == 0:
+#     for element in rook_free_list(rook_position):
+#         answer = "R{}-{}".format(rook_position, element)
+#         print(answer)
+# else:
+#     pass
+
+print (reduce_pieces(pieces, rook_position))
+print (delete_moves(reduce_pieces(pieces,rook_position), rook_free_list(rook_position), rook_position))
